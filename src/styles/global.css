@@ -1,0 +1,5 @@
+@import 'tailwindcss';
+
+:where(body) {
+  text-autospace: normal;
+}
