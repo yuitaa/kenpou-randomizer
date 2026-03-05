@@ -41,7 +41,7 @@ bun install
 bun dev
 
 # ビルド (dist/ に静的ファイルが生成されます)
-bun build
+bun run build
 
 # プレビュー
 bun preview
