@@ -18,6 +18,10 @@ const siteUrl = Astro.url.toString();
           憲法を改正する
         </ActionButton>
 
+        <ActionButton id="speak-btn" variant="secondary" class="hidden text-base">
+          読み上げる
+        </ActionButton>
+
         <ActionButton id="copy-btn" variant="secondary" class="text-base">
           この条文をコピー
         </ActionButton>
@@ -33,6 +37,15 @@ const siteUrl = Astro.url.toString();
     const contentArea = document.getElementById('constitution-content');
     const randomizeBtn = document.getElementById('randomize-btn');
     const copyBtn = document.getElementById('copy-btn');
+    const speakBtn = document.getElementById('speak-btn');
+
+    // Web Speech API Support check
+    const synth = window.speechSynthesis;
+    const isSpeechSupported = !!synth;
+
+    if (isSpeechSupported) {
+      speakBtn.classList.remove('hidden');
+    }
 
     // 漢数字変換用のフォーマッタ
     const kanjiFormatter = new Intl.NumberFormat('ja-JP-u-nu-hanidec');
@@ -58,6 +71,12 @@ const siteUrl = Astro.url.toString();
     }
 
     function randomize() {
+      // 読み上げ中なら停止
+      if (isSpeechSupported) {
+        synth.cancel();
+        speakBtn.innerText = '読み上げる';
+      }
+
       const article = getRandomItem(processedConstitution);
       if (!article) return;
 
@@ -141,8 +160,48 @@ const siteUrl = Astro.url.toString();
       }
     }
 
+    function toggleSpeak() {
+      if (!isSpeechSupported || !currentTextData.num) return;
+
+      if (synth.speaking) {
+        synth.cancel();
+        speakBtn.innerText = '読み上げる';
+        return;
+      }
+
+      let text = `${currentTextData.num}\n`;
+      currentTextData.paragraphs.forEach((p) => {
+        text += `${p.text}\n`;
+        p.items.forEach((item, idx) => {
+          const kanjiNum = kanjiFormatter.format(idx + 1);
+          text += `${kanjiNum}. ${item}\n`;
+        });
+      });
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'ja-JP';
+      utterance.rate = 1.0;
+
+      utterance.onstart = () => {
+        speakBtn.innerText = '停止する';
+      };
+
+      utterance.onend = () => {
+        speakBtn.innerText = '読み上げる';
+      };
+
+      utterance.onerror = () => {
+        speakBtn.innerText = '読み上げる';
+      };
+
+      synth.speak(utterance);
+    }
+
     randomizeBtn.addEventListener('click', randomize);
     copyBtn.addEventListener('click', copyToClipboard);
+    if (isSpeechSupported) {
+      speakBtn.addEventListener('click', toggleSpeak);
+    }
 
     // 初回表示
     randomize();
