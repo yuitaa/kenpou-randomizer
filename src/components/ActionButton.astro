@@ -7,10 +7,12 @@ interface Props {
 
 const { id, variant = 'primary', class: className } = Astro.props;
 
-const baseStyles = "w-full cursor-pointer border-2 px-8 py-3 text-lg font-bold shadow-md transition-all active:scale-95 md:w-auto";
-const variantStyles = variant === 'primary' 
-  ? "border-amber-900 bg-amber-900 text-amber-50 hover:bg-amber-800" 
-  : "border-amber-800 bg-white text-amber-800 shadow-sm hover:bg-amber-50";
+const baseStyles =
+  'w-full cursor-pointer border-2 px-8 py-3 text-lg font-bold shadow-md transition-all active:scale-95 md:w-auto';
+const variantStyles =
+  variant === 'primary'
+    ? 'border-amber-900 bg-amber-900 text-amber-50 hover:bg-amber-800'
+    : 'border-amber-800 bg-white text-amber-800 shadow-sm hover:bg-amber-50';
 ---
 
 <button id={id} class:list={[baseStyles, variantStyles, className]}>
