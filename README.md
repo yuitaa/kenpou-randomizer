@@ -1,43 +1,52 @@
-# Astro Starter Kit: Minimal
+# 📜 日本国憲法ランダマイザー (Constitution Randomizer)
 
-```sh
-bun create astro@latest -- --template minimal
+日本国憲法の条文をランダムに「改正」してしまう、ジョークアプリです。
+憲法の構造を保ったまま、名詞（主に漢字）を他の条文から抽出した単語と入れ替えることで、それっぽいけれどカオスな憲法を生成します。
+
+※ この `README.md` はAIによって生成されたものです。
+
+## ✨ 特徴
+
+- **ランダム改正**: ボタン一つで日本国憲法の全条文からランダムに1つ選び、中身の単語を入れ替えます。
+- **読み上げ機能**: Web Speech API を使用して、生成された「改正案」を合成音声で読み上げます。
+- **クリップボードコピー**: 生成された文章を、コピーしてSNSなどでシェアしやすい形式で取得できます。
+- **軽量・高速**: Astro を採用し、データのパースをビルド時に行うことで、ブラウザ上での動作を最小限に抑えています。
+
+## 🛠️ 技術スタック
+
+- **フレームワーク**: [Astro v5](https://astro.build/)
+- **スタイリング**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **データ処理**:
+  - `fast-xml-parser`: 憲法データ（XML）のパースに使用
+  - `Intl.Segmenter`: 形態素解析による単語抽出に使用
+- **実行環境**: [Bun](https://bun.sh/) (推奨)
+
+## 🏗️ 仕組み
+
+1. **ビルド時 (SSG)**:
+   - `src/data/constitution.xml` を読み込み、`fast-xml-parser` で構造化します。
+   - `Intl.Segmenter`（ブラウザ標準の形態素解析API）の Node.js 版的な挙動を利用して、条文から「2文字以上の漢字」を抽出・穴埋め化します。
+   - 抽出した「単語リスト」と「穴埋め済み条文リスト」を JSON 形式でクライアントサイドへ渡します。
+2. **実行時 (Client)**:
+   - ブラウザ上の JavaScript で、穴埋め箇所に単語リストからランダムに単語を流し込みます。
+   - DOM操作はピュアな Vanilla JS で行い、高速なレスポンスを実現しています。
+
+## 🚀 開発・実行
+
+```bash
+# 依存関係のインストール
+bun install
+
+# 開発サーバーの起動
+bun dev
+
+# ビルド (dist/ に静的ファイルが生成されます)
+bun build
+
+# プレビュー
+bun preview
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## ⚠️ 免責事項
 
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
-
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
-
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `bun install`             | Installs dependencies                            |
-| `bun dev`             | Starts local dev server at `localhost:4321`      |
-| `bun build`           | Build your production site to `./dist/`          |
-| `bun preview`         | Preview your build locally, before deploying     |
-| `bun astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `bun astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+このアプリは**ジョークアプリ**です。生成される文章は法的な効力を持たず、また政治的な意図も含まれていません。
