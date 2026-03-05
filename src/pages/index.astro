@@ -1,5 +1,170 @@
 ---
 import Layout from '@/Layout/Layout.astro';
+import { extractedWords, processedConstitution } from '@/data/processedConstitution';
+
+const siteUrl = Astro.url.toString();
 ---
 
-<Layout description="日本国憲法をランダムに改正します" />
+<Layout description="日本国憲法をランダムに改正します">
+  <main class="flex min-h-screen flex-col items-center bg-amber-50 px-4 py-8">
+    <div class="flex w-full max-w-3xl flex-col items-center gap-6">
+      <h1 class="text-center text-3xl font-extrabold text-amber-900 drop-shadow-sm md:text-4xl">
+        日本国憲法ランダマイザー
+      </h1>
+
+      <!-- 操作ボタンを上部に配置 -->
+      <div class="flex w-full flex-wrap justify-center gap-4">
+        <button
+          id="randomize-btn"
+          class="w-full cursor-pointer border-2 border-amber-900 bg-amber-900 px-10 py-3 text-lg font-bold text-amber-50 shadow-md transition-all hover:bg-amber-800 active:scale-95 md:w-auto">
+          憲法を改正する
+        </button>
+
+        <button
+          id="copy-btn"
+          class="w-full cursor-pointer border-2 border-amber-800 bg-white px-8 py-3 text-base font-bold text-amber-800 shadow-sm transition-all hover:bg-amber-50 active:scale-95 md:w-auto">
+          この条文をコピー
+        </button>
+      </div>
+
+      <!-- 条文表示エリア -->
+      <div
+        class="flex min-h-87.5 w-full flex-col justify-center overflow-hidden bg-white p-6 font-serif shadow-lg md:p-10">
+        <!-- 背景の装飾アイコン -->
+
+        <article id="constitution-content" class="relative z-10 flex flex-col gap-4">
+          <!-- ロード用プレースホルダー -->
+          <div class="animate-pulse space-y-4">
+            <div class="h-6 w-1/4 rounded-sm bg-amber-100"></div>
+            <div class="space-y-3">
+              <div class="h-4 rounded-sm bg-amber-50"></div>
+              <div class="h-4 w-5/6 rounded-sm bg-amber-50"></div>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- 注意書きを一番下に配置 -->
+      <p class="text-xs text-amber-700/60 italic">※これはジョークアプリです</p>
+    </div>
+  </main>
+
+  <script define:vars={{ processedConstitution, extractedWords, siteUrl }}>
+    const contentArea = document.getElementById('constitution-content');
+    const randomizeBtn = document.getElementById('randomize-btn');
+    const copyBtn = document.getElementById('copy-btn');
+
+    // 漢数字変換用のフォーマッタ
+    const kanjiFormatter = new Intl.NumberFormat('ja-JP-u-nu-hanidec');
+
+    let currentTextData = {
+      num: '',
+      paragraphs: [],
+    };
+
+    function getRandomItem(arr) {
+      if (!arr || arr.length === 0) return '';
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    // 単語置換処理
+    function fillRandomWords(text, useHtml = true) {
+      return text.replace(/@/g, () => {
+        const word = getRandomItem(extractedWords);
+        return useHtml
+          ? `<span class="text-amber-700 font-bold underline decoration-amber-400 underline-offset-4">${word}</span>`
+          : word;
+      });
+    }
+
+    function randomize() {
+      const article = getRandomItem(processedConstitution);
+      if (!article) return;
+
+      currentTextData = {
+        num: article.num,
+        paragraphs: [],
+      };
+
+      let html = `<h2 class="text-xl md:text-2xl font-bold text-amber-900 border-b-2 border-amber-200 pb-2">${article.num}</h2>`;
+
+      article.content.forEach((paragraph) => {
+        const processedTextHtml = fillRandomWords(paragraph.text, true);
+        const processedTextRaw = fillRandomWords(paragraph.text, false);
+
+        const pData = {
+          text: processedTextRaw,
+          items: [],
+        };
+
+        html += `<div class="flex flex-col gap-2">
+          <p class="text-lg md:text-xl leading-relaxed text-gray-900">
+            ${processedTextHtml}
+          </p>`;
+
+        if (paragraph.items && paragraph.items.length > 0) {
+          html += `<ol class="space-y-1 ml-10 list-[cjk-ideographic] marker:text-amber-800 marker:font-bold">`;
+          paragraph.items.forEach((item) => {
+            const processedItemHtml = fillRandomWords(item, true);
+            const processedItemRaw = fillRandomWords(item, false);
+
+            pData.items.push(processedItemRaw);
+
+            html += `<li class="text-lg md:text-xl text-gray-800 pl-2">
+              <span class="leading-relaxed">${processedItemHtml}</span>
+            </li>`;
+          });
+          html += `</ol>`;
+        }
+
+        html += `</div>`;
+        currentTextData.paragraphs.push(pData);
+      });
+
+      contentArea.style.opacity = 0;
+      contentArea.innerHTML = html;
+
+      requestAnimationFrame(() => {
+        contentArea.style.transition = 'opacity 0.2s ease-out';
+        contentArea.style.opacity = 1;
+      });
+    }
+
+    async function copyToClipboard() {
+      if (!currentTextData.num) return;
+
+      let text = `${currentTextData.num}\n`;
+
+      currentTextData.paragraphs.forEach((p) => {
+        text += `${p.text}\n`;
+        p.items.forEach((item, idx) => {
+          const kanjiNum = kanjiFormatter.format(idx + 1);
+          text += `${kanjiNum}. ${item}\n`;
+        });
+      });
+
+      text += `\n日本国憲法ランダマイザー ${siteUrl}`;
+
+      try {
+        await navigator.clipboard.writeText(text);
+
+        const originalText = copyBtn.innerText;
+        copyBtn.innerText = 'コピー完了';
+        copyBtn.classList.add('bg-amber-100');
+
+        setTimeout(() => {
+          copyBtn.innerText = originalText;
+          copyBtn.classList.remove('bg-amber-100');
+        }, 1500);
+      } catch (err) {
+        console.error('Failed to copy: ', err);
+      }
+    }
+
+    randomizeBtn.addEventListener('click', randomize);
+    copyBtn.addEventListener('click', copyToClipboard);
+
+    // 初回表示
+    randomize();
+  </script>
+</Layout>
