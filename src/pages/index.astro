@@ -1,9 +1,9 @@
 ---
 import Layout from '@/Layout/Layout.astro';
-import { extractedWords, processedConstitution } from '@/data/processedConstitution';
-import Header from '@/components/Header.astro';
 import ActionButton from '@/components/ActionButton.astro';
 import ConstitutionCard from '@/components/ConstitutionCard.astro';
+import Header from '@/components/Header.astro';
+import { extractedWords, processedConstitution } from '@/data/processedConstitution';
 
 const siteUrl = Astro.url.toString();
 ---
@@ -14,17 +14,11 @@ const siteUrl = Astro.url.toString();
       <Header>日本国憲法ランダマイザー</Header>
 
       <div class="flex w-full flex-wrap justify-center gap-4">
-        <ActionButton id="randomize-btn" variant="primary" class="px-10">
-          憲法を改正する
-        </ActionButton>
+        <ActionButton id="randomize-btn" variant="primary" class="px-10"> 憲法を改正する </ActionButton>
 
-        <ActionButton id="speak-btn" variant="secondary" class="hidden text-base">
-          読み上げる
-        </ActionButton>
+        <ActionButton id="speak-btn" variant="secondary" class="hidden text-base"> 読み上げる </ActionButton>
 
-        <ActionButton id="copy-btn" variant="secondary" class="text-base">
-          この条文をコピー
-        </ActionButton>
+        <ActionButton id="copy-btn" variant="secondary" class="text-base"> この条文をコピー </ActionButton>
       </div>
 
       <ConstitutionCard />
@@ -68,7 +62,10 @@ const siteUrl = Astro.url.toString();
       // @を一つずつ処理して、同じ単語を両方に適用する
       while (html.includes('@')) {
         const word = getRandomItem(extractedWords);
-        html = html.replace('@', `<span class="text-amber-700 font-bold underline decoration-amber-400 underline-offset-4">${word}</span>`);
+        html = html.replace(
+          '@',
+          `<span class="text-amber-700 font-bold underline decoration-amber-400 underline-offset-4">${word}</span>`,
+        );
         raw = raw.replace('@', word);
       }
 
@@ -141,11 +138,11 @@ const siteUrl = Astro.url.toString();
         text += `${p.text}\n`;
         p.items.forEach((item, idx) => {
           const kanjiNum = kanjiFormatter.format(idx + 1);
-          text += `${kanjiNum}. ${item}\n`;
+          text += `${kanjiNum}、 ${item}\n`;
         });
       });
 
-      text += `\n日本国憲法ランダマイザー ${siteUrl}`;
+      text += `\n日本国憲法ランダマイザー <${siteUrl}>`;
 
       try {
         await navigator.clipboard.writeText(text);
